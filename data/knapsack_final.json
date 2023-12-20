@@ -2,8 +2,8 @@
   "generations": 100,
   "population_size": 50,
   "mutation_rate": 0.2,
-  "elitism_rate": 0.2,
-  "mating_pool_rate": 0.6,
+  "elitism_rate": 0.1,
+  "mating_pool_rate": 0.5,
   "capacity": 100,
   "items": [
     {
@@ -85,6 +85,26 @@
     {
       "value": 100,
       "weight": 20
+    },
+    {
+      "value": 300,
+      "weight": 60
+    },
+    {
+      "value": 200,
+      "weight": 40
+    },
+    {
+      "value": 600,
+      "weight": 80
+    },
+    {
+      "value": 1000,
+      "weight": 95
+    },
+    {
+      "value": 500,
+      "weight": 75
     }
   ]
 }

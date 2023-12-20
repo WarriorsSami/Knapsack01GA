@@ -58,8 +58,10 @@ def crossover(chromosome1, chromosome2):
     crossover_mask = np.random.randint(2, size=length)
 
     return (
-        [chromosome1[i] if crossover_mask[i] == 1 else chromosome2[i] for i in range(length)],
-        [chromosome2[i] if crossover_mask[i] == 1 else chromosome1[i] for i in range(length)],
+        np.array([chromosome1[i] if crossover_mask[i] == 1 else chromosome2[i]
+                  for i in range(length)]),
+        np.array([chromosome2[i] if crossover_mask[i] == 1 else chromosome1[i]
+                  for i in range(length)]),
     )
 
 
@@ -68,21 +70,15 @@ def mutate(chromosome, config):
     mutation_rate = config['mutation_rate']
     mutation_probabilities = [np.random.uniform() for _ in range(length)]
 
-    return [chromosome[i] if mutation_probabilities[i] > mutation_rate else 1 - chromosome[i] for i in range(length)]
-
-
-def get_fittest_chromosome(population, config):
-    fitnesses = [get_fitness(chromosome, config) for chromosome in population]
-    fitnesses = np.array(fitnesses)
-
-    return population[np.argmax(fitnesses)], np.max(fitnesses)
+    return np.array([chromosome[i] if mutation_probabilities[i] > mutation_rate else 1 - chromosome[i]
+                     for i in range(length)])
 
 
 def get_diversity_rate(population):
     return len(set(map(lambda x: tuple(x), population))) / len(population)
 
 
-def sort_population_by_fitness_desc(population, config):
+def sort_population_by_fitness(population, config):
     fitnesses = [get_fitness(chromosome, config) for chromosome in population]
     fitnesses = np.array(fitnesses)
 
@@ -91,9 +87,7 @@ def sort_population_by_fitness_desc(population, config):
 
 def evolve(population, config):
     population = select(population, config)
-    population = sort_population_by_fitness_desc(population, config)
-
-    print_population(population, config)
+    population = sort_population_by_fitness(population, config)
 
     # apply elitism
     elitism_size = int(config['population_size'] * config['elitism_rate'])
@@ -124,10 +118,13 @@ def evolve(population, config):
 
 
 def print_population(population, config):
-    print('Population: (len: {})', len(population))
-    for chromosome in population:
+    fittest_chromosome, fitness = population[0], get_fitness(population[0], config)
+    print('Fittest chromosome: {} (fitness: {})'.format(fittest_chromosome, fitness))
+
+    print('Population: (len: {})'.format(len(population)))
+    for chromosome_id, chromosome in enumerate(population):
         fitness = get_fitness(chromosome, config)
-        print('Chromosome: {} (fitness: {})'.format(chromosome, fitness))
+        print('Chromosome {}: {} (fitness: {})'.format(chromosome_id, chromosome, fitness))
     print()
 
 
@@ -145,18 +142,15 @@ def plot_diversity_history(diversity_history):
     plt.show()
 
 
-def show_possible_solution(population, config):
-    fittest_chromosome, fitness = get_fittest_chromosome(population, config)
-
-    if fitness < 0:
-        print('No solution found after {} generations'.format(config['generations']))
-        return
+def show_possible_solution(fittest_tuple, config):
+    fittest_chromosome, fitness, generation = fittest_tuple
 
     selected_items = get_selected_items(fittest_chromosome, config)
 
     total_weight = sum(map(lambda x: x['weight'], selected_items))
     total_value = sum(map(lambda x: x['value'], selected_items))
 
+    print('Solution found at generation: {}'.format(generation))
     print('Fittest chromosome: {} (fitness: {})'.format(fittest_chromosome, fitness))
     print('Selected items: {}'.format(selected_items))
     print('Total weight: {}'.format(total_weight))

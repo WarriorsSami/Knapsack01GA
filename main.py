@@ -12,10 +12,17 @@ with open(input_path) as f:
 
 generation = 0
 population = generate_population(knapsack_config)
+fittest_tuple = population[0], get_fitness(population[0], knapsack_config), 0
+
 fitness_history = []
 diversity_history = []
 
-while generation < knapsack_config['generations']:
+for generation in range(knapsack_config['generations']):
+    population = sort_population_by_fitness(population, knapsack_config)
+
+    if get_fitness(population[0], knapsack_config) > fittest_tuple[1]:
+        fittest_tuple = population[0], get_fitness(population[0], knapsack_config), generation
+
     print('Generation: {}'.format(generation))
 
     avg_fitness = get_population_avg_fitness(population, knapsack_config)
@@ -26,15 +33,15 @@ while generation < knapsack_config['generations']:
     diversity_history.append(diversity_rate)
     print('Diversity rate: {}'.format(diversity_rate))
 
-    fittest_chromosome, fitness = get_fittest_chromosome(population, knapsack_config)
-    print('Fittest chromosome: {} (fitness: {})'.format(fittest_chromosome, fitness))
+    print_population(population, knapsack_config)
+
+    if generation == knapsack_config['generations'] - 1:
+        break
 
     population = evolve(population, knapsack_config)
-
     print()
-    generation += 1
 
 plot_fitness_history(fitness_history)
 plot_diversity_history(diversity_history)
 
-show_possible_solution(population, knapsack_config)
+show_possible_solution(fittest_tuple, knapsack_config)
