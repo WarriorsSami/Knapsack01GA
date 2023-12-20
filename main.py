@@ -1,16 +1,38 @@
-# This is a sample Python script.
+import json
+import sys
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from utils import *
 
+# get input path from command line arguments
+input_path = sys.argv[1]
+print('Input from: {}'.format(input_path))
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+with open(input_path) as f:
+    knapsack_config = json.load(f)
 
+generation = 0
+population = generate_population(knapsack_config)
+fitness_history = []
+diversity_history = []
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+while generation < knapsack_config['generations']:
+    print('Generation: {}'.format(generation))
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    avg_fitness = get_population_avg_fitness(population, knapsack_config)
+    fitness_history.append(avg_fitness)
+    print('Average fitness: {}'.format(avg_fitness))
+
+    diversity_rate = get_diversity_rate(population)
+    diversity_history.append(diversity_rate)
+    print('Diversity rate: {}'.format(diversity_rate))
+
+    fittest_chromosome, fitness = get_fittest_chromosome(population, knapsack_config)
+    print('Fittest chromosome: {} (fitness: {})'.format(fittest_chromosome, fitness))
+
+    population = evolve(population, knapsack_config)
+
+    print()
+    generation += 1
+
+plot_fitness_history(fitness_history)
+plot_diversity_history(diversity_history)
