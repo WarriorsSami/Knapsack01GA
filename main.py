@@ -36,3 +36,5 @@ while generation < knapsack_config['generations']:
 
 plot_fitness_history(fitness_history)
 plot_diversity_history(diversity_history)
+
+show_possible_solution(population, knapsack_config)

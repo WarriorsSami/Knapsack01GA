@@ -2,6 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def get_selected_items(chromosome, config):
+    return list(
+        map(lambda x: x[0],
+            filter(lambda x: x[1] == 1,
+                   zip(config['items'], chromosome),
+                   ),
+            ),
+    )
+
+
 def generate_chromosome(length):
     return np.random.randint(2, size=length)
 
@@ -11,13 +21,7 @@ def generate_population(config):
 
 
 def get_fitness(chromosome, config):
-    selected_items = list(
-        map(lambda x: x[0],
-            filter(lambda x: x[1] == 1,
-                   zip(config['items'], chromosome),
-                   ),
-            ),
-    )
+    selected_items = get_selected_items(chromosome, config)
 
     total_weight = sum(map(lambda x: x['weight'], selected_items))
     total_value = sum(map(lambda x: x['value'], selected_items))
@@ -140,3 +144,20 @@ def plot_diversity_history(diversity_history):
     plt.ylabel('Diversity Rate')
     plt.show()
 
+
+def show_possible_solution(population, config):
+    fittest_chromosome, fitness = get_fittest_chromosome(population, config)
+
+    if fitness < 0:
+        print('No solution found after {} generations'.format(config['generations']))
+        return
+
+    selected_items = get_selected_items(fittest_chromosome, config)
+
+    total_weight = sum(map(lambda x: x['weight'], selected_items))
+    total_value = sum(map(lambda x: x['value'], selected_items))
+
+    print('Fittest chromosome: {} (fitness: {})'.format(fittest_chromosome, fitness))
+    print('Selected items: {}'.format(selected_items))
+    print('Total weight: {}'.format(total_weight))
+    print('Total value: {}'.format(total_value))
