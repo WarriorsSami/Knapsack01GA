@@ -1,14 +1,21 @@
 import json
-import sys
+import os
 
 from utils import *
 
-# get input path from command line arguments
-input_path = sys.argv[1]
+input_path = os.environ.get('INPUT_PATH')
+mode = os.environ.get('MODE')
+evolve_alg = os.environ.get('EVOLVE_ALG')
+
 print('Input from: {}'.format(input_path))
+print('Mode: {}'.format(mode))
+print('Evolve algorithm: {}'.format(evolve_alg))
 
 with open(input_path) as f:
     knapsack_config = json.load(f)
+
+evolve = evolve_with_elitism if evolve_alg == 'elitism' else evolve_without_elitism
+diversity_threshold = 1 / knapsack_config['population_size']
 
 generation = 0
 population = generate_population(knapsack_config)
@@ -17,7 +24,7 @@ fittest_tuple = population[0], get_fitness(population[0], knapsack_config), 0
 fitness_history = []
 diversity_history = []
 
-for generation in range(knapsack_config['generations']):
+while True:
     population = sort_population_by_fitness(population, knapsack_config)
 
     if get_fitness(population[0], knapsack_config) > fittest_tuple[1]:
@@ -35,10 +42,17 @@ for generation in range(knapsack_config['generations']):
 
     print_population(population, knapsack_config)
 
-    if generation == knapsack_config['generations'] - 1:
-        break
+    match mode:
+        case 'convergence':
+            if diversity_rate <= diversity_threshold:
+                print('Converged at generation {}'.format(generation))
+                break
+        case _:
+            if generation == knapsack_config['generations'] - 1:
+                break
 
     population = evolve(population, knapsack_config)
+    generation += 1
     print()
 
 plot_fitness_history(fitness_history)

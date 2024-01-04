@@ -85,7 +85,36 @@ def sort_population_by_fitness(population, config):
     return [population[i] for i in np.argsort(fitnesses)[::-1]]
 
 
-def evolve(population, config):
+def evolve_without_elitism(population, config):
+    # select parents
+    parents = select(population, config)
+
+    # crossover parents to create len(population) children
+    children = []
+    for i in range(0, len(population), 2):
+        parent1, parent2 = parents[np.random.randint(len(parents))], parents[np.random.randint(len(parents))]
+
+        child1, child2 = crossover(parent1, parent2)
+
+        # mutate children
+        child1, child2 = mutate(child1, config), mutate(child2, config)
+
+        children.append(child1)
+        children.append(child2)
+
+    # merge initial population with children
+    population = population + children
+
+    # select survivors to match initial population size
+    population = select(population, config)[:config['population_size']]
+
+    # sort population by fitness
+    population = sort_population_by_fitness(population, config)
+
+    return population
+
+
+def evolve_with_elitism(population, config):
     population = select(population, config)
     population = sort_population_by_fitness(population, config)
 
