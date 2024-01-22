@@ -36,15 +36,19 @@ def get_population_avg_fitness(population, config):
     return np.mean([get_fitness(chromosome, config) for chromosome in population])
 
 
-def select(population, config):
+def select(population, size_rate, config):
     fitnesses = [get_fitness(chromosome, config) for chromosome in population]
     fitnesses = np.array(fitnesses)
+
+    # normalize fitnesses
+    min_fitness = abs(min(fitnesses))
+    fitnesses = np.array(list(map(lambda x: x + min_fitness, fitnesses)))
 
     probabilities = list(map(lambda x: x / fitnesses.sum(), fitnesses))
     partial_probabilities_sum = list(map(lambda x: sum(probabilities[:x]), range(1, len(probabilities) + 1)))
 
     selections = []
-    for _ in range(len(population)):
+    for _ in range(int(len(population) * size_rate)):
         r = np.random.uniform()
         chromosome_id = next(x[0] for x in enumerate(partial_probabilities_sum) if x[1] > r)
 
@@ -87,7 +91,7 @@ def sort_population_by_fitness(population, config):
 
 def evolve_without_elitism(population, config):
     # select parents
-    parents = select(population, config)
+    parents = select(population, config['selection_rate'], config)
 
     # crossover parents to create len(population) children
     children = []
@@ -96,20 +100,24 @@ def evolve_without_elitism(population, config):
 
         child1, child2 = crossover(parent1, parent2)
 
-        # mutate children
-        child1, child2 = mutate(child1, config), mutate(child2, config)
-
         children.append(child1)
         children.append(child2)
 
-    # merge initial population with children
-    population = population + children
+    # mutate children
+    mutation_partitions = np.array_split(children, int(len(children) * config['mutation_population_rate']))
+    mutated_children = mutation_partitions[0]
+    non_mutated_children = mutation_partitions[1]
 
-    # select survivors to match initial population size
-    population = select(population, config)[:config['population_size']]
+    mutated_children = [mutate(child, config) for child in mutated_children]
+
+    # merge initial population with children
+    population = population + list(mutated_children) + list(non_mutated_children)
 
     # sort population by fitness
     population = sort_population_by_fitness(population, config)
+
+    # select survivors to match initial population size
+    population = select(population, 1, config)[:config['population_size']]
 
     return population
 

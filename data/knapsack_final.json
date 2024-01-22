@@ -1,7 +1,11 @@
 {
   "generations": 100,
-  "population_size": 50,
+  "population_size": 200,
+  "selection_rate": 0.6,
+  "mutation_population_rate": 0.3,
   "mutation_rate": 0.1,
+  "diversity_rate_diff": 0.05,
+  "diversity_rate_diff_cnt": 10,
   "elitism_rate": 0.1,
   "mating_pool_rate": 0.5,
   "capacity": 100,
